@@ -1,0 +1,216 @@
+// Function called at Winlog startup
+Function void Main()
+#Startup
+//***************************************
+// Open default page
+//***************************************
+//TPageOpen("Main");
+
+int czas2tab; //100*godzina+minuta; wartość czasu obliczona i zapisywana do tablic na podstawie czasu systemowego
+int GodzSynch = 11; //godzina synchronizacji
+int MinSynch = 15; //minuta synchronizacji
+
+int DzwonekOn; //flaga zalaczenie dzwonk
+int DzwonekTime = 10000; //czas trwania dzwonka w milisekundach
+int GodzZ1 = 6; //godzina rozpoczecia zmiany I (6)
+int GodzZ2 = 14; //godzina rozpoczecia zmiany II
+int GodzZ3 = 22; //godzina rozpoczecia zmiany III
+int GodzPZ11 = 9; //godzina w której sa przerwy na 1 zmianie
+int GodzPZ12 = 10; //godzina w której sa przerwy na 1 zmianie
+int GodzPZ21 = 17; //godzina w której sa przerwy na 2 zmianie
+int GodzPZ22 = 18; //godzina w której sa przerwy na 2 zmianie
+int GodzPZ31 = 1; //godzina w której sa przerwy na 3 zmianie
+int GodzPZ32 = 2; //godzina w której sa przerwy na 3 zmianie
+int MinP1St = 40; //minuta rozpoczecia przerwy 1
+int MinP1Sp = 55; //minuta zakonczenia przerwy 1
+int MinP2St = 00; //minuta rozpoczecia przerwy 2
+int MinP2Sp = 15; //minuta zakonczenia przerwy 2
+int MinP3St = 20; //minuta rozpoczecia przerwy 3
+int MinP3Sp = 35; //minuta zakonczenia przerwy 3
+int MinP4St = 40; //minuta rozpoczecia przerwy 4
+int MinP4Sp = 55; //minuta zakonczenia przerwy 4
+/*
+//Przerwy dla U1/U2
+int UGodzPZ1 = 14; //godzina w której sa przerwy na 1 zmianie
+int UGodzPZ2 = 22; //godzina w której sa przerwy na 2 zmianie
+int UMinP1St = 30; //minuta rozpoczecia przerwy 1
+int UMinP1Sp = 45; //minuta zakonczenia przerwy 1
+int UMinP2St = 30; //minuta rozpoczecia przerwy 2
+int UMinP2Sp = 45; //minuta zakonczenia przerwy 2
+*/
+
+int godz;
+int min;
+
+int lampkiOn = 0; //flaga zalaczenie losowania na koniec zmiany
+int lampkiOnOpoznienie = 0; // czas opoznienia po zakonczeniu zniany maksymalnie 59 sekund
+int lampkiOnTime = 20; //czas losowania minutach
+int lampkaTime = 2; //czas swiecenia lampki w sekundach
+int zakLos1 = 32; // zakres losowania
+int zakLos2 = 33; // zakres losowania
+int zakLos3 = 34; // zakres losowania
+
+int fB1; // flagi uruchamiajace losowanie opuznien
+int fB2;
+int fB3;
+int opB1; // wylosowane opuznienia
+int opB2;
+int opB3;
+int sec; // minuty + sekundy przeliczone na sekundy
+
+
+// SYNCHRONIZACJA CZASU SYSTEMOWEGO I TABLIC LED PO URUCHOMIENIU APLIKACJI
+//sek = GetSecond(); // aktualna sekunda
+//do
+//while (GetSecond()!=59)
+//godz = GetHour(); //aktualna godzina
+//min = GetMinute(); //aktualna minuta
+//czas2tab = 100*godz+min+1;
+//SetNumGateValue("czas_do_tab",2, czas2tab);
+//SetNumGateValue("czas_do_tab",3, czas2tab);
+
+lampkiOn = 0;
+fB1 = 0; // flagi uruchamiajace losowanie opuznien
+fB2 = 0;
+fB3 = 0;
+opB1 = 0;
+opB2 = 0;
+opB3 = 0;
+SetNumGateValue("bramka1",1,0);
+SetNumGateValue("bramka2",1,0);
+SetNumGateValue("bramka3",1,0);
+
+do
+//STEROWANIE DZWONKIEM
+godz = GetHour(); //aktualna godzina
+min = GetMinute(); //aktualna minuta
+
+//sprawdzenie czy jest poczatek/koniec przerwy
+if (((godz==GodzPZ11)||(godz==GodzPZ21)||(godz==GodzPZ31))&&((min==MinP1St)||(min==MinP1Sp))||((godz==GodzPZ12)||(godz==GodzPZ22)||(godz==GodzPZ32))&&((min==MinP2St)||(min==MinP2Sp)||(min==MinP3St)||(min==MinP3Sp)||(min==MinP4St)||(min==MinP4Sp))&&(GetSecond()==1)) then
+    DzwonekOn = 1;
+end
+
+if (((godz==GodzPZ11)||(godz==GodzPZ21)||(godz==GodzPZ31))&&((min==MinP1St)||(min==MinP1Sp))||((godz==GodzPZ12)||(godz==GodzPZ22)||(godz==GodzPZ32))&&((min==MinP2St)||(min==MinP2Sp)||(min==MinP3St)||(min==MinP3Sp)||(min==MinP4St)||(min==MinP4Sp))&&(GetSecond()==10)) then
+    DzwonekOn = 0;
+end
+
+/*
+//Przerwy dla U1/U2
+if (((godz==UGodzPZ1)||(godz==UGodzPZ2))&&((min==UMinP1St)||(min==UMinP1Sp)||(min==UMinP2St)||(min==UMinP2Sp))&&(GetSecond()==1)) then
+    DzwonekOn = 1;
+end
+
+if (((godz==UGodzPZ1)||(godz==UGodzPZ2))&&((min==UMinP1St)||(min==UMinP1Sp)||(min==UMinP2St)||(min==UMinP2Sp))&&(GetSecond()==3)) then
+    DzwonekOn = 0;
+end
+
+if (((godz==UGodzPZ1)||(godz==UGodzPZ2))&&((min==UMinP1St)||(min==UMinP1Sp)||(min==UMinP2St)||(min==UMinP2Sp))&&(GetSecond()==4)) then
+    DzwonekOn = 1;
+end
+
+if (((godz==UGodzPZ1)||(godz==UGodzPZ2))&&((min==UMinP1St)||(min==UMinP1Sp)||(min==UMinP2St)||(min==UMinP2Sp))&&(GetSecond()==6)) then
+    DzwonekOn = 0;
+end
+
+if (((godz==UGodzPZ1)||(godz==UGodzPZ2))&&((min==UMinP1St)||(min==UMinP1Sp)||(min==UMinP2St)||(min==UMinP2Sp))&&(GetSecond()==7)) then
+    DzwonekOn = 1;
+end
+
+if (((godz==UGodzPZ1)||(godz==UGodzPZ2))&&((min==UMinP1St)||(min==UMinP1Sp)||(min==UMinP2St)||(min==UMinP2Sp))&&(GetSecond()==9)) then
+    DzwonekOn = 0;
+end
+*/
+
+//sprzawdzenie czy jest poczatek zmiany
+if (((godz==GodzZ1)||(godz==GodzZ2)||(godz==GodzZ3))&&(min==0)&&(GetSecond()==1)) then
+    DzwonekOn = 1;
+    lampkiOn = 1;
+end
+
+if (((godz==GodzZ1)||(godz==GodzZ2)||(godz==GodzZ3))&&(min==0)&&(GetSecond()==10)) then
+    DzwonekOn = 0;
+end
+
+//uruchomienie dzwonka
+if (DzwonekOn==1) then
+    SetNumGateValue("Dzwonek",1,1);
+//    SetNumGateValue("bramka1",1,0);
+//    SetNumGateValue("bramka2",1,0);
+//    SetNumGateValue("bramka3",1,0);
+//    fB1=0;
+//    fB2=0;
+//    fB3=0;
+end
+
+if (DzwonekOn==0) then
+    SetNumGateValue("Dzwonek",1,0);
+end
+
+//sprzawdzenie czy jest poczatek zmiany + opuznienie do losowani
+//if (((godz==GodzZ1)||(godz==GodzZ2)||(godz==GodzZ3))&&(min==0)&&(GetSecond()==lampkiOnOpoznienie)&&(lampkiOn==0)) then
+//    lampkiOn = 1;
+//end
+
+//koniec losowania
+if (((godz==GodzZ1)||(godz==GodzZ2)||(godz==GodzZ3))&&(min==lampkiOnTime)&&(GetSecond()==1)) then
+    lampkiOn = 0;
+    SetNumGateValue("bramka1",1,0);
+    SetNumGateValue("bramka2",1,0);
+    SetNumGateValue("bramka3",1,0);
+    fB1=0;
+    fB2=0;
+    fB3=0;
+end
+
+if (lampkiOn==1) then
+    sec = GetMinute()*60 + GetSecond();
+    if (fB1==0) then
+        fB1=1;
+        opB1=(sec + Rand(zakLos1) + 2);
+    end
+    if (fB2==0) then
+        fB2=1;
+        opB2=(sec + Rand(zakLos2) + 2);
+    end
+    if (fB3==0) then
+        fB3=1;
+        opB3=(sec + Rand(zakLos3) + 2);
+    end
+
+    if (opB1==sec) then
+        SetNumGateValue("bramka1",1,1);
+//        sleep(1000);
+    end
+    if (sec==(opB1 + lampkaTime)) then
+        SetNumGateValue("bramka1",1,0);
+        fB1=0;
+    end
+    if (opB2==sec) then
+        SetNumGateValue("bramka2",1,1);
+//        sleep(1000);
+    end
+    if (sec==(opB2 + lampkaTime)) then
+        SetNumGateValue("bramka2",1,0);
+        fB2=0;
+    end
+    if (opB3==sec) then
+        SetNumGateValue("bramka3",1,1);
+//        sleep(1000);
+    end
+    if (sec==(opB3 + lampkaTime)) then
+        SetNumGateValue("bramka3",1,0);
+        fB3=0;
+    end
+
+end
+
+// SYNCHRONIZACJA CZASU SYSTEMOWEGO I TABLIC LED O OKRESLONEJ PORZE
+if ((godz==GodzSynch)&&(min==MinSynch-1)&&(GetSecond()==59)) then
+    czas2tab = 100*godz+min+1;
+    SetNumGateValue("czas_do_tab",2, czas2tab);
+    SetNumGateValue("czas_do_tab",3, czas2tab);
+//    Sleep(1000);
+end
+sleep(1001);
+while (WindowIsOpen())
+end
